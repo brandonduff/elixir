@@ -36,6 +36,39 @@ defmodule MyList do
 
   def span(from, from), do: [from]
   def span(from, to), do: [from | span(from + 1, to)]
+
+  def all?([], _func), do: true
+  def all?([h | t], func) do
+    func.(h) && all?(t, func)
+  end
+
+  def each(list = [], _), do: list
+  def each([h | t] = list, func) do
+    func.(h)
+    each(t, func)
+    list
+  end
+
+  def filter(list = [], _), do: list
+  def filter([h | t], func) do
+    if func.(h) do
+      [h] ++ filter(t, func)
+    else
+      filter(t, func)
+    end
+  end
+
+  def split(list, count) do
+    split(list, [], count)
+  end
+
+  defp split(list, left, count) when count <= 0 do
+    [left, list]
+  end
+
+  defp split([head | tail], left, count) when count > 0 do
+    split(tail, left ++ [head], count - 1)
+  end
 end
 
 defmodule MyListTests do
@@ -61,6 +94,34 @@ defmodule MyListTests do
   assert_equal(span(1, 2), [1, 2])
   assert_equal(span(1, 3), [1, 2, 3])
   assert_equal(span(1, 4), [1, 2, 3, 4])
+
+  assert_equal(all?([], fn _ -> true end), true)
+  assert_equal(all?([], fn _ -> false end), true)
+  assert_equal(all?([1], fn _ -> false end), false)
+  assert_equal(all?([1, 2], fn _ -> false end), false)
+  assert_equal(all?([1, 2], fn _ -> true end), true)
+  assert_equal(all?([true, false], fn el -> el end), false)
+
+  assert_equal(each([], fn -> raise "shouldn't be called" end), [])
+  assert_equal(each([1], fn (el) -> assert_equal(1, el) end), [1])
+
+  assert_equal(filter([], fn _ -> nil end), [])
+  assert_equal(filter([1], fn _ -> true end), [1])
+  assert_equal(filter([1], fn _ -> false end), [])
+  assert_equal(filter([1, 2], fn _ -> true end), [1, 2])
+  assert_equal(filter([1, 2], fn _ -> false end), [])
+  assert_equal(filter([true, false], fn el -> el end), [true])
+  assert_equal(filter([false, true], fn el -> el end), [true])
+  assert_equal(filter([false, true, false, true], fn el -> el end), [true, true])
+
+  assert_equal(split([], 0), [[], []])
+  assert_equal(split([1], 0), [[], [1]])
+  assert_equal(split([1], 1), [[1], []])
+  assert_equal(split([1,2], 1), [[1], [2]])
+  assert_equal(split([1,2], 2), [[1, 2], []])
+  assert_equal(split([1,2,3], 3), [[1, 2, 3], []])
+  assert_equal(split([1,2,3], 0), [[], [1, 2, 3]])
+  assert_equal(split([1,2,3,4], 2), [[1, 2], [3, 4]])
 
   IO.puts "success!"
 end
