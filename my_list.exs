@@ -69,6 +69,12 @@ defmodule MyList do
   defp split([head | tail], left, count) when count > 0 do
     split(tail, left ++ [head], count - 1)
   end
+
+  def take(_list, 0), do: []
+  def take([], _count), do: []
+  def take([h | t], count) do
+   [h] ++ take(t, count - 1)
+  end
 end
 
 defmodule MyListTests do
@@ -122,6 +128,15 @@ defmodule MyListTests do
   assert_equal(split([1,2,3], 3), [[1, 2, 3], []])
   assert_equal(split([1,2,3], 0), [[], [1, 2, 3]])
   assert_equal(split([1,2,3,4], 2), [[1, 2], [3, 4]])
+
+  assert_equal(take([], 0), [])
+  assert_equal(take([1], 0), [])
+  assert_equal(take([1], 1), [1])
+  assert_equal(take([1, 2], 1), [1])
+  assert_equal(take([1, 2], 2), [1, 2])
+  assert_equal(take([1, 2], 3), [1, 2])
+  assert_equal(take([1, 2, 3], 2), [1, 2])
+  assert_equal(take([1, 2, 3, 4], 3), [1, 2, 3])
 
   IO.puts "success!"
 end
