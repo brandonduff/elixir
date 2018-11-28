@@ -1,4 +1,4 @@
-defmodule Test do
+defmodule Assert do
   def assert(:false), do: raise "Assertion failed"
   def assert(_), do: true
 
@@ -75,10 +75,16 @@ defmodule MyList do
   def take([h | t], count) do
    [h] ++ take(t, count - 1)
   end
+
+  def flatten([h | t]) do
+    flatten(h) ++ flatten(t)
+  end
+  def flatten([]), do: []
+  def flatten(el), do: [el]
 end
 
 defmodule MyListTests do
-  import Test
+  import Assert
   import MyList
 
   assert_equal(map([], fn arg -> arg end), [])
@@ -137,6 +143,16 @@ defmodule MyListTests do
   assert_equal(take([1, 2], 3), [1, 2])
   assert_equal(take([1, 2, 3], 2), [1, 2])
   assert_equal(take([1, 2, 3, 4], 3), [1, 2, 3])
+
+  assert_equal(flatten([]), [])
+  assert_equal(flatten([1]), [1])
+  assert_equal(flatten([[]]), [])
+  assert_equal(flatten([1, 2]), [1, 2])
+  assert_equal(flatten([1, [2]]), [1, 2])
+  assert_equal(flatten([1, [2, 3]]), [1, 2, 3])
+  assert_equal(flatten([1, [2, [3]]]), [1, 2, 3])
+  assert_equal(flatten([[1, [[2, [[3]]]]]]), [1, 2, 3])
+  assert_equal(flatten([[[1]], [2]]), [1, 2])
 
   IO.puts "success!"
 end
