@@ -81,6 +81,14 @@ defmodule MyList do
   end
   def flatten([]), do: []
   def flatten(el), do: [el]
+
+  def total(tax_rates, items) do
+    for item <- items, do: total_item(item, tax_rates[item[:ship_to]])
+  end
+
+  defp total_item(item, tax_rate) do
+    item ++ [ total_amount: item[:net_amount] + item[:net_amount] * (tax_rate || 0) ]
+  end
 end
 
 defmodule MyListTests do
@@ -153,6 +161,12 @@ defmodule MyListTests do
   assert_equal(flatten([1, [2, [3]]]), [1, 2, 3])
   assert_equal(flatten([[1, [[2, [[3]]]]]]), [1, 2, 3])
   assert_equal(flatten([[[1]], [2]]), [1, 2])
+
+  assert_equal(total([], [[ id: 123, ship_to: :UT, net_amount: 100 ]]),
+    [[ id: 123, ship_to: :UT, net_amount: 100, total_amount: 100 ]])
+
+  assert_equal(total([UT: 0.075], [[ id: 123, ship_to: :UT, net_amount: 100 ]]),
+    [[ id: 123, ship_to: :UT, net_amount: 100, total_amount: 107.5 ]])
 
   IO.puts "success!"
 end
