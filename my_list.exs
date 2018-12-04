@@ -110,14 +110,9 @@ defmodule MyList do
 
   defp pad(string, num) do
     difference = num - String.length(string)
-    nums = span(1, div(difference + 1, 2))
-    padding = get_padding_string(div(difference + 1, 2))
-    left_pad = padding <> string
-    if rem(difference, 2) > 0 do
-      left_pad
-    else
-      left_pad <> padding
-    end
+    left_padding = get_padding_string(div(difference + 1, 2))
+    right_padding = get_padding_string(rem(difference - 1, 2))
+    left_padding <> string <> right_padding 
   end
 
   defp get_padding_string(length) do
@@ -267,7 +262,7 @@ defmodule MyListTests do
   )
   assert_equal(center(["aa", "bbbbb", "ccc"]),
     """
-      aa  
+      aa
     bbbbb
      ccc 
     """
