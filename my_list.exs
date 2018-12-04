@@ -30,10 +30,11 @@ defmodule MyList do
     max([current | tail])
   end
 
-  def max([current | [head | tail]]) when head > current do
+  def max([current | [head | tail]]) when head >= current do
     max([head | tail])
   end
 
+  def span(from, to) when to < from, do: []
   def span(from, from), do: [from]
   def span(from, to), do: [from | span(from + 1, to)]
 
@@ -88,6 +89,40 @@ defmodule MyList do
 
   defp total_item(item, tax_rate) do
     item ++ [ total_amount: item[:net_amount] + item[:net_amount] * (tax_rate || 0) ]
+  end
+
+  def printable?(list) do
+    Enum.all?(list, fn c -> c >= ?\s && c <= ?\~ end)
+  end
+
+  def anagram?(first, second) do
+    first == Enum.reverse(second)
+  end
+
+  def center([string]), do: string
+  def center(string_list) do
+    longest_string = string_list
+          |> map(&String.length/1)
+          |> max
+
+    Enum.join(map(string_list, fn string -> pad(string, longest_string) end), "\n") <> "\n"
+  end
+
+  defp pad(string, num) do
+    difference = num - String.length(string)
+    nums = span(1, div(difference + 1, 2))
+    padding = get_padding_string(div(difference + 1, 2))
+    left_pad = padding <> string
+    if rem(difference, 2) > 0 do
+      left_pad
+    else
+      left_pad <> padding
+    end
+  end
+
+  defp get_padding_string(length) do
+    nums = span(1, length)
+    Enum.join(map(nums, fn _ -> " " end))
   end
 end
 
@@ -168,6 +203,75 @@ defmodule MyListTests do
   assert_equal(total([UT: 0.075], [[ id: 123, ship_to: :UT, net_amount: 100 ]]),
     [[ id: 123, ship_to: :UT, net_amount: 100, total_amount: 107.5 ]])
 
+  assert_equal(printable?([]), true)
+  assert_equal(printable?([?\s]), true)
+  assert_equal(printable?([?\s - 1]), false)
+  assert_equal(printable?([?\~ + 1]), false)
+  assert_equal(printable?([?\s, ?\~ + 1]), false)
+  assert_equal(printable?([?\s, ?\s]), true)
+
+  assert_equal(anagram?('', ''), true)
+  assert_equal(anagram?('a', 'b'), false)
+  assert_equal(anagram?('a', 'ba'), false)
+  assert_equal(anagram?('ab', 'ba'), true)
+
+  assert_equal(center([""]), "")
+  assert_equal(center(["a", "b"]),
+    """
+    a
+    b
+    """
+  )
+  assert_equal(center(["a", "bb"]),
+    """
+     a
+    bb
+    """
+  )
+  assert_equal(center(["a", "bbb"]),
+    """
+     a 
+    bbb
+    """
+  )
+  assert_equal(center(["aa", "bbb"]),
+    """
+     aa
+    bbb
+    """
+  )
+  assert_equal(center(["aaa", "bbb"]),
+    """
+    aaa
+    bbb
+    """
+  )
+  assert_equal(center(["a", "bbbb"]),
+    """
+      a
+    bbbb
+    """
+  )
+  assert_equal(center(["aa", "bbbb"]),
+    """
+     aa 
+    bbbb
+    """
+  )
+  assert_equal(center(["aa", "bbbb", "ccc"]),
+    """
+     aa 
+    bbbb
+     ccc
+    """
+  )
+  assert_equal(center(["aa", "bbbbb", "ccc"]),
+    """
+      aa  
+    bbbbb
+     ccc 
+    """
+  )
   IO.puts "success!"
 end
 
