@@ -1,44 +1,31 @@
 Code.require_file("Assert.exs")
 
-defmodule Test do
-  def init(test_module) do
-    %{ was_run: false, was_set_up: false, test_module: test_module }
-  end
-
-  def run(test, args) do
-    result = apply(test.test_module.set_up, args)
-    apply(test.test_module.test, [result])
-  end
-end
-
 defmodule WasRun do
-  def set_up do
-    fn result -> %{ result | was_set_up: true, was_run: false } end
+  import Map
+
+  def set_up(set_up) do
+    %{ set_up: set_up }
   end
 
-  def test do
-    fn result -> %{ result | was_run: true } end
+  def run(test) do
+    test.set_up.() |> test.execute.() |> tear_down
+  end
+
+  def tear_down(result) do
+    merge(result, %{ log: result.log <> "tearDown" }) 
+  end
+
+  def specify(context, specification) do
+    merge(context, %{ execute: specification })
   end
 end
 
-defmodule TestCaseTest do
-  import Assert
+context = WasRun.set_up(fn -> %{ log: "setUp " } end)
+test = WasRun.specify(context, fn (context) ->
+  Map.merge(context, %{ log: context.log <> "run " })
+end)
 
-  def test_running do
-    test = Test.init(WasRun)
-    assert(!test.was_run)
-    result = Test.run(test, [test])
-    assert(result.was_run)
-    IO.puts "Success!"
-  end
+result = WasRun.run(test)
+Assert.assert_equal(result.log, "setUp run tearDown")
 
-  def test_set_up do
-    test = Test.init(WasRun)
-    result = Test.run(test, [test])
-    assert(result.was_set_up)
-    IO.puts "Success!"
-  end 
-end
-
-TestCaseTest.test_running()
-TestCaseTest.test_set_up()
+IO.puts 'success'
